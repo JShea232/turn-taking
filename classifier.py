@@ -38,7 +38,7 @@ def train_classifier(sentence: list):
     Args:
         sentence: An list of data for the utterance to process.
     """
-    text = sentence[5].split()
+    text = sentence[5].lower().split()
     good_start = sentence[6]
     good_end = sentence[7]
 
