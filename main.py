@@ -27,7 +27,7 @@ def read_data(file_name: str) -> list:
 			good_start = row[6]
 			good_end = row[7]
 			if good_start and good_end:
-				data.append([file_id, turn_type, speaker, turn_num, utt_num, sentence])
+				data.append([file_id, turn_type, speaker, turn_num, utt_num, sentence, good_start, good_end])
 	return data
 
 def main():
