@@ -6,32 +6,38 @@ Written for Python 3.6.3.
 import argparse
 import operator
 import os
-import main
+
+from main import read_data
 
 collocation_dict = {
-    "BAD_START": {
-        "first_word": {},
-        "last_word": {},
-        "sentence_length": {}
+    'BAD_START': {
+        'first_word': {},
+        'last_word': {},
+        'sentence_length': {}
     },
-    "BAD_END": {
-        "first_word": {},
-        "last_word": {},
-        "sentence_length": {}
+    'BAD_END': {
+        'first_word': {},
+        'last_word': {},
+        'sentence_length': {}
     },
-    "GOOD_START": {
-        "first_word": {},
-        "last_word": {},
-        "sentence_length": {}
+    'GOOD_START': {
+        'first_word': {},
+        'last_word': {},
+        'sentence_length': {}
     },
-    "GOOD_END": {
-        "first_word": {},
-        "last_word": {},
-        "sentence_length": {}
+    'GOOD_END': {
+        'first_word': {},
+        'last_word': {},
+        'sentence_length': {}
     }
 }
 
 def train_classifier(sentence: list):
+    """Stores sentence information in the classifier.
+
+    Args:
+        sentence: An list of data for the utterance to process.
+    """
     text = sentence[5].split()
     good_start = sentence[6]
     good_end = sentence[7]
@@ -46,8 +52,7 @@ def train_classifier(sentence: list):
     else:
         end = 'BAD_END'
 
-    if len(text) > 0:
-
+    if text:
         # Build dictionary for good/bad stars
         if str(len(text)) in collocation_dict[start]['sentence_length']:
             collocation_dict[start]['sentence_length'][str(len(text))] += 1
@@ -81,23 +86,32 @@ def train_classifier(sentence: list):
             collocation_dict[end]['last_word'][text[-1]] = 1
 
 def print_common_features(sentence_type: str, feature: str, num_items: int):
+    """Prints instances of a feature that occur often.
+
+    Args:
+        sentence_type: The type of sentence boundary to analyze.
+        feature: The feature being analyzed.
+        num_items: The number of most common instances of the feature to display.
+    """
     my_dict = collocation_dict[sentence_type][feature]
     sorted_dict = sorted(my_dict.items(), key=operator.itemgetter(1), reverse=True)
 
-    print("FEATURE: " + feature + " for " + sentence_type)
+    print('FEATURE: ' + feature + ' for ' + sentence_type)
     for index in range(num_items):
         entry = sorted_dict[index]
-        print("KEY: " + str(entry[0]) + " -> VALUE: " + str(entry[1]))
-    print("------------------------------------")
+        print('KEY: ' + str(entry[0]) + ' -> VALUE: ' + str(entry[1]))
+    print('------------------------------------')
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('transcript_file', help='Directory containing transcription files.')
+def main():
+    """Reads in transcript data and analyzes it for collocation data"""
+    parser = argparse.ArgumentParser(
+        description='Trains and gives information for a collocation-based model.')
+    parser.add_argument('transcript_file', help='File containing the collated utterance information.')
     args = vars(parser.parse_args())
     transcript_file = args['transcript_file']
     if not os.path.isfile(transcript_file):
         raise RuntimeError('The given file does not exist!')
-    data = main.read_data(transcript_file)
+    data = read_data(transcript_file)
     for sen in data:
         train_classifier(sen)
     print_common_features('GOOD_END', 'first_word', 10)
@@ -115,3 +129,6 @@ if __name__ == "__main__":
     #print_common_features('BAD_START', 'first_word', 10)
     #print_common_features('BAD_START', 'last_word', 10)
     #print_common_features('BAD_START', 'sentence_length', 10)
+
+if __name__ == '__main__':
+    main()
