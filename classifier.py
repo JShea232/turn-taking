@@ -4,54 +4,31 @@ Written for Python 3.6.3.
 """
 
 import argparse
+import operator
 import os
 import main
 
 
 collocation_dict = {
     "BAD_START": {
-        "first_word": {
-
-        },
-        "last_word": {
-
-        },
-        "sentence_length": {
-
-        }
+        "first_word": {},
+        "last_word": {},
+        "sentence_length": {}
     },
     "BAD_END": {
-        "first_word": {
-
-        },
-        "last_word": {
-
-        },
-        "sentence_length": {
-
-        }
+        "first_word": {},
+        "last_word": {},
+        "sentence_length": {}
     },
     "GOOD_START": {
-        "first_word": {
-
-        },
-        "last_word": {
-
-        },
-        "sentence_length": {
-
-        }
+        "first_word": {},
+        "last_word": {},
+        "sentence_length": {}
     },
     "GOOD_END": {
-        "first_word": {
-
-        },
-        "last_word": {
-
-        },
-        "sentence_length": {
-
-        }
+        "first_word": {},
+        "last_word": {},
+        "sentence_length": {}
     }
 }
 
@@ -106,11 +83,14 @@ def train_classifier(sentence: list):
             collocation_dict[end]['last_word'][text[-1]] = 1
 
 
-def print_common_features(sentence_type: str, feature: str, min_freq: int):
+def print_common_features(sentence_type: str, feature: str, num_items: int):
+    my_dict = collocation_dict[sentence_type][feature]
+    sorted_dict = sorted(my_dict.items(), key=operator.itemgetter(1), reverse=True)
+
     print("FEATURE: " + feature + " for " + sentence_type)
-    for key in collocation_dict[sentence_type][feature].keys():
-        if collocation_dict[sentence_type][feature][key] > min_freq:
-            print("KEY: " + key + " -> VALUE: " + str(collocation_dict[sentence_type][feature][key]))
+    for index in range(num_items):
+        entry = sorted_dict[index]
+        print("KEY: " + str(entry[0]) + " -> VALUE: " + str(entry[1]))
     print("------------------------------------")
 
 
@@ -124,18 +104,18 @@ if __name__ == "__main__":
     data = main.read_data(transcript_file)
     for sen in data:
         train_classifier(sen)
-    print_common_features('GOOD_END', 'first_word', 500)
-    print_common_features('GOOD_END', 'last_word', 500)
-    print_common_features('GOOD_END', 'sentence_length', 500)
+    print_common_features('GOOD_END', 'first_word', 10)
+    print_common_features('GOOD_END', 'last_word', 10)
+    print_common_features('GOOD_END', 'sentence_length', 10)
 
-    print_common_features('BAD_END', 'first_word', 500)
-    print_common_features('BAD_END', 'last_word', 500)
-    print_common_features('BAD_END', 'sentence_length', 500)
+    print_common_features('BAD_END', 'first_word', 10)
+    print_common_features('BAD_END', 'last_word', 10)
+    print_common_features('BAD_END', 'sentence_length', 10)
 
-    print_common_features('GOOD_START', 'first_word', 500)
-    print_common_features('GOOD_START', 'last_word', 500)
-    print_common_features('GOOD_START', 'sentence_length', 500)
+    print_common_features('GOOD_START', 'first_word', 10)
+    print_common_features('GOOD_START', 'last_word', 10)
+    print_common_features('GOOD_START', 'sentence_length', 10)
 
-    print_common_features('BAD_START', 'first_word', 500)
-    print_common_features('BAD_START', 'last_word', 500)
-    print_common_features('BAD_START', 'sentence_length', 500)
+    print_common_features('BAD_START', 'first_word', 10)
+    print_common_features('BAD_START', 'last_word', 10)
+    print_common_features('BAD_START', 'sentence_length', 10)
