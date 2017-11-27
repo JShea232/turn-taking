@@ -7,6 +7,7 @@ import argparse
 import csv
 import os
 import random
+from itertools import accumulate
 
 import nltk
 from nltk import pos_tag
@@ -45,6 +46,8 @@ def main():
 	random.shuffle(sentences)
 	print(sentences[:10])
 	
+	# 21,763 with word terminals
+	# 8,028 with pos terminals
 	productions = []
 	S = nltk.Nonterminal('S')
 	for tree in nltk.corpus.treebank.parsed_sents():
@@ -57,14 +60,17 @@ def main():
 		#print(productions)
 		#exit()
 	grammar = nltk.induce_pcfg(S, productions)
+	print(len(grammar.productions()))
 	#print(grammar.productions()[1000:1020])
 	#print(grammar.check_coverage(['NN', 'VBP']))
-	sentence = 'I went to the house'.split() # The house I did go
+	sentence = 'Okay'.split() # "I went to the house", "The house I did go", "that's where the real sticking point comes in"
 	print(sentence, flush=True)
 	pos = [pos for word, pos in pos_tag(sentence)]
 	print(pos, flush=True)
-	#for 
-	print([tree.prob() for tree in list(nltk.parse.ViterbiParser(grammar, trace=0).parse(pos))], flush=True)
+	for line in accumulate(pos, lambda total, token: total + ' ' + token):
+		line = line.split()
+		print(line)
+		print([tree.prob() for tree in list(nltk.parse.ViterbiParser(grammar, trace=0).parse(line))], flush=True)
 
 if __name__ == '__main__':
 	main()

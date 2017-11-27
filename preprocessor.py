@@ -133,7 +133,7 @@ def process_switchboard_utterance(line: str, file_id: str) -> str:
 	sentence = PUNK_REGEX.sub('', sentence) # Remove most punctuation
 	sentence = remove_tokens(sentence, ['{'], ['-']) # Remove some tokens with invalid characters
 	sentence = remove_enclosing(sentence, [('<<', '>>'), ('<', '>')]) # Remove enclosed text
-	sentence = NONALPHA_REGEX.sub('', sentence).lower() # remove remaining punctuation and lowercase
+	sentence = NONALPHA_REGEX.sub('', sentence) # Remove remaining punctuation and lowercase
 	sentence = ' '.join([token for token in sentence.split() if token != '-']) # Remove '-' tokens
 	return [file_id, turn_type, speaker, turn_num, utt_num, sentence, good_start, good_end]
 
