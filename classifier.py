@@ -8,7 +8,6 @@ import operator
 import os
 import main
 
-
 collocation_dict = {
     "BAD_START": {
         "first_word": {},
@@ -32,18 +31,17 @@ collocation_dict = {
     }
 }
 
-
 def train_classifier(sentence: list):
     text = sentence[5].split()
     good_start = sentence[6]
     good_end = sentence[7]
 
-    if good_start == "True":
+    if good_start:
         start = 'GOOD_START'
     else:
         start = 'BAD_START'
 
-    if good_end == "True":
+    if good_end:
         end = 'GOOD_END'
     else:
         end = 'BAD_END'
@@ -82,7 +80,6 @@ def train_classifier(sentence: list):
         else:
             collocation_dict[end]['last_word'][text[-1]] = 1
 
-
 def print_common_features(sentence_type: str, feature: str, num_items: int):
     my_dict = collocation_dict[sentence_type][feature]
     sorted_dict = sorted(my_dict.items(), key=operator.itemgetter(1), reverse=True)
@@ -92,7 +89,6 @@ def print_common_features(sentence_type: str, feature: str, num_items: int):
         entry = sorted_dict[index]
         print("KEY: " + str(entry[0]) + " -> VALUE: " + str(entry[1]))
     print("------------------------------------")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -116,6 +112,6 @@ if __name__ == "__main__":
     print_common_features('GOOD_START', 'last_word', 10)
     print_common_features('GOOD_START', 'sentence_length', 10)
 
-    print_common_features('BAD_START', 'first_word', 10)
-    print_common_features('BAD_START', 'last_word', 10)
-    print_common_features('BAD_START', 'sentence_length', 10)
+    #print_common_features('BAD_START', 'first_word', 10)
+    #print_common_features('BAD_START', 'last_word', 10)
+    #print_common_features('BAD_START', 'sentence_length', 10)

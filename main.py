@@ -21,12 +21,12 @@ def read_data(file_name: str) -> list:
 			file_id = row[0]
 			turn_type = row[1]
 			speaker = row[2]
-			turn_num = row[3]
-			utt_num = row[4]
+			turn_num = int(row[3])
+			utt_num = int(row[4])
 			sentence = row[5]
-			good_start = row[6]
-			good_end = row[7]
-			if good_start and good_end:
+			good_start = row[6] == 'True'
+			good_end = row[7] == 'True'
+			if good_start:
 				data.append([file_id, turn_type, speaker, turn_num, utt_num, sentence, good_start, good_end])
 	return data
 
