@@ -7,10 +7,6 @@ import argparse
 import csv
 import os
 import random
-from itertools import accumulate
-
-import nltk
-from nltk import pos_tag
 
 def read_data(file_name: str) -> list:
 	"""Reads in a TSV file and converts to a list of utterances.
@@ -55,36 +51,6 @@ def main():
 		good_start, good_end in data]
 	random.shuffle(sentences)
 	print(sentences[:10])
-
-	# 21,763 with word terminals
-	# 8,028 with pos terminals
-	productions = []
-	start_symbol = nltk.Nonterminal('S')
-	for tree in nltk.corpus.treebank.parsed_sents():
-		#print(tree.productions())
-		for production in tree.productions():
-			if isinstance(production.rhs()[0], nltk.grammar.Nonterminal):
-				productions.append(production)
-			else:
-				productions.append(nltk.grammar.Production(production.lhs(), (production.lhs().symbol(),)))
-		#print(productions)
-		#exit()
-	grammar = nltk.induce_pcfg(start_symbol, productions)
-	print(len(grammar.productions()))
-	#print(grammar.productions()[1000:1020])
-	#print(grammar.check_coverage(['NN', 'VBP']))
-	sentence = 'Okay'.split()
-	# "I went to the house"
-	# "The house I did go"
-	# "that's where the real sticking point comes in"
-	print(sentence, flush=True)
-	pos = [pos for word, pos in pos_tag(sentence)]
-	print(pos, flush=True)
-	for line in accumulate(pos, lambda total, token: total + ' ' + token):
-		line = line.split()
-		print(line)
-		print([tree.prob() for tree in
-			list(nltk.parse.ViterbiParser(grammar, trace=0).parse(line))], flush=True)
 
 if __name__ == '__main__':
 	main()
