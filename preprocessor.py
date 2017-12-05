@@ -11,7 +11,7 @@ from os.path import splitext
 from os.path import join
 import re
 
-PUNK_REGEX = re.compile(r'[^\w\-{<> /\']')
+PUNK_REGEX = re.compile(r'[^\w\-{<> /\'\*\[\]]')
 NONALPHA_REGEX = re.compile(r'[^\w\- \']')
 
 def store_data(file_name: str, data: list) -> None:
@@ -132,7 +132,8 @@ def process_switchboard_utterance(line: str, file_id: str) -> str:
 	good_start = not sentence[:2] == '--'
 	sentence = PUNK_REGEX.sub('', sentence) # Remove most punctuation
 	sentence = remove_tokens(sentence, ['{'], ['-']) # Remove some tokens with invalid characters
-	sentence = remove_enclosing(sentence, [('<<', '>>'), ('<', '>')]) # Remove enclosed text
+	sentence = remove_enclosing(sentence, [('<<', '>>'), ('<', '>'), ('*[[', ']]')]) # Remove enclosed text
+	
 	sentence = NONALPHA_REGEX.sub('', sentence) # Remove remaining punctuation and lowercase
 	sentence = ' '.join([token for token in sentence.split() if token != '-']) # Remove '-' tokens
 	return [file_id, turn_type, speaker, turn_num, utt_num, sentence, good_start, good_end]
