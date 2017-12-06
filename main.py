@@ -8,6 +8,10 @@ import csv
 import os
 import random
 
+import numpy as np
+from sklearn.dummy import DummyClassifier
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+
 def read_data(file_name: str) -> list:
 	"""Reads in a TSV file and converts to a list of utterances.
 
@@ -34,6 +38,32 @@ def read_data(file_name: str) -> list:
 				data.append([file_id, turn_type, speaker, turn_num, utt_num, sentence, good_start, good_end])
 	return data
 
+def evaluate(model, x_data: list, y_data: list) -> (float, float, float, float):
+	"""Calculates metrics for a model."""
+	x_data = np.reshape(range(len(x_data)), (-1, 1))
+	y_pred = model.predict(x_data)
+	y_true = y_data
+
+	accuracy = accuracy_score(y_true, y_pred)
+	precision = precision_score(y_true, y_pred)
+	recall = recall_score(y_true, y_pred)
+	f1_measure = f1_score(y_true, y_pred)
+	return accuracy, precision, recall, f1_measure
+
+def train_test_split(features: list, targets: list, test_size: float, random_state: int = None) -> (list, list, list, list):
+	"""Working version of sklearn.model_selection.train_test_split"""
+	if random_state:
+		random.seed(random_state)
+	data = list(zip(features, targets))
+	random.shuffle(data)
+	features, targets = zip(*data)
+	split = round(len(features) * (1 - test_size))
+	x_train = features[:split]
+	y_train = targets[:split]
+	x_test = features[:split]
+	y_test = targets[:split]
+	return x_train, x_test, y_train, y_test
+
 def main():
 	"""Reads in transcript data and tests the turn-taking detector"""
 	parser = argparse.ArgumentParser(description=
@@ -44,13 +74,16 @@ def main():
 	if not os.path.isfile(transcript_file):
 		raise RuntimeError('The given file does not exist!')
 
-	random.seed(1311)
-
 	data = read_data(transcript_file)
 	sentences = [sentence for file_id, turn_type, speaker, turn_num, utt_num, sentence,
 		good_start, good_end in data]
-	random.shuffle(sentences)
-	print(sentences[:10])
+	good_ends = [good_end for file_id, turn_type, speaker, turn_num, utt_num, sentence,
+		good_start, good_end in data]
+	x_train, x_test, y_train, y_test = train_test_split(sentences, good_ends, test_size=0.1, random_state=1311)
+
+	baseline = DummyClassifier(strategy='most_frequent')
+	baseline.fit(np.reshape(range(len(x_train)), (-1, 1)), y_train)
+	print('Accuracy: {}\nPrecision: {}\nRecall: {}\nF1: {}'.format(*evaluate(baseline, x_test, y_test)))
 
 if __name__ == '__main__':
 	main()
