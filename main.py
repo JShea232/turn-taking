@@ -14,6 +14,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
+from sklearn.model_selection import train_test_split
 
 def read_data(file_name: str) -> list:
 	"""Reads in a TSV file and converts to a list of utterances.
@@ -52,21 +53,6 @@ def evaluate(model, x_data: list, y_data: list) -> (float, float, float, float):
 	recall = recall_score(y_true, y_pred, average='macro')
 	f1_measure = f1_score(y_true, y_pred, average='macro')
 	return accuracy, precision, recall, f1_measure
-
-def train_test_split(features: list, targets: list,
-	test_size: float, random_state: int = None) -> (list, list, list, list):
-	"""Working version of sklearn.model_selection.train_test_split"""
-	if random_state:
-		random.seed(random_state)
-	data = list(zip(features, targets))
-	random.shuffle(data)
-	features, targets = zip(*data)
-	split = round(len(features) * (1 - test_size))
-	x_train = features[:split]
-	y_train = targets[:split]
-	x_test = features[:split]
-	y_test = targets[:split]
-	return x_train, x_test, y_train, y_test
 
 def main():
 	"""Reads in transcript data and tests the turn-taking detector"""
