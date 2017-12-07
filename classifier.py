@@ -12,10 +12,9 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
-#from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split
 from sklearn.svm import LinearSVC
 
-from main import train_test_split
 
 def train_model(sentence_list, endings_list):
     """
@@ -46,7 +45,7 @@ def train_model(sentence_list, endings_list):
 
         # Randomly generate a training and test set to get an accuracy
         training, testing, train_label, test_label = \
-            train_test_split(transformed_sentences, endings_list, test_size=0.25)
+            train_test_split(transformed_sentences, endings_list)
 
         # Dictionary of classifiers that will 'compete' for the best
         # accuracy rating
@@ -80,6 +79,7 @@ def train_model(sentence_list, endings_list):
     with open('turn_taking_vector.pkl', 'wb') as file:
         pickle.dump(best_vectorizer, file)
 
+
 def test_model(sentences, endings):
     """
     This function works to evaluate a series of sentences to determine
@@ -102,6 +102,7 @@ def test_model(sentences, endings):
     print('Precision: %0.4f' % precision_score(endings, predictions, average='macro'))
     print('Recall: %0.4f' % recall_score(endings, predictions, average='macro'))
     print('F1: %0.4f' % f1_score(endings, predictions, average='macro'))
+
 
 def main():
     """Reads in transcript training data to build a suitable turn-taking model"""
