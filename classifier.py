@@ -5,14 +5,17 @@ Written for Python 3.6.3.
 
 import argparse
 import os
-
-from main import read_data
-from sklearn.svm import LinearSVC
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
 import pickle
 
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import f1_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+#from sklearn.model_selection import train_test_split
+from sklearn.svm import LinearSVC
+
+from main import train_test_split
 
 def train_model(sentence_list, endings_list):
     """
@@ -43,7 +46,7 @@ def train_model(sentence_list, endings_list):
 
         # Randomly generate a training and test set to get an accuracy
         training, testing, train_label, test_label = \
-            train_test_split(transformed_sentences, endings_list)
+            train_test_split(transformed_sentences, endings_list, test_size=0.25)
 
         # Dictionary of classifiers that will 'compete' for the best
         # accuracy rating
@@ -54,8 +57,7 @@ def train_model(sentence_list, endings_list):
         current_model = None
 
         # Iterate through each possible classifier
-        for name in classifiers.keys():
-            clf = classifiers[name]
+        for name, clf in classifiers.items():
             clf.fit(training, train_label)
             predictions = clf.predict(testing)
             if current_accuracy < accuracy_score(test_label, predictions):
@@ -74,10 +76,9 @@ def train_model(sentence_list, endings_list):
 
     # Store model and vectorizer into a pickle file
     with open('turn_taking_model.pkl', 'wb') as file:
-        pickle._dump(best_model, file)
+        pickle.dump(best_model, file)
     with open('turn_taking_vector.pkl', 'wb') as file:
-        pickle._dump(best_vectorizer, file)
-
+        pickle.dump(best_vectorizer, file)
 
 def test_model(sentences, endings):
     """
@@ -97,41 +98,39 @@ def test_model(sentences, endings):
         vectorizer = pickle.load(file)
     features = vectorizer.transform(sentences)
     predictions = clf.predict(features)
-    print('Turn-Taking Accuracy: %0.4f' % accuracy_score(endings, predictions))
-
+    print('Accuracy: %0.4f' % accuracy_score(endings, predictions))
+    print('Precision: %0.4f' % precision_score(endings, predictions, average='macro'))
+    print('Recall: %0.4f' % recall_score(endings, predictions, average='macro'))
+    print('F1: %0.4f' % f1_score(endings, predictions, average='macro'))
 
 def main():
-    # Reads in transcript training data to build a suitable turn-taking model
+    """Reads in transcript training data to build a suitable turn-taking model"""
     parser = argparse.ArgumentParser(
         description='Trains and gives information for a turn-taking model.')
     parser.add_argument('transcript_file', help='File containing the collated '
                                                 'utterance information.')
+    parser.add_argument('-t', action='store_true', help='Enable training.', dest='train')
     args = vars(parser.parse_args())
     transcript_file = args['transcript_file']
+    do_train = args['train']
     if not os.path.isfile(transcript_file):
         raise RuntimeError('The given file does not exist!')
 
     # Read in training/test data
     data = read_data(transcript_file)
-    sentences = []
-    endings = []
-    training_range = int(len(data) * 0.8)
 
-    for entry in data[:training_range]:
-        sentences.append(entry[5])
-        endings.append(entry[7])
+    sentences = [sentence for file_id, turn_type, speaker, turn_num, utt_num, sentence,
+        good_start, good_end in data]
+    good_ends = [good_end for file_id, turn_type, speaker, turn_num, utt_num, sentence,
+        good_start, good_end in data]
+    sentences, test_sentences, endings, test_endings = train_test_split(
+        sentences, good_ends, test_size=0.1, random_state=1311)
 
-    # Un-comment train_model function to retrain the model
-    #train_model(sentences, endings)
-
-    test_sentences = []
-    test_endings = []
-    for entry in data[training_range:]:
-        test_sentences.append(entry[5])
-        test_endings.append(entry[7])
+    if do_train:
+        train_model(sentences, endings)
 
     test_model(test_sentences, test_endings)
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
+    from main import read_data
     main()
