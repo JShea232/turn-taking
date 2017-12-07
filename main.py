@@ -10,7 +10,10 @@ import random
 
 import numpy as np
 from sklearn.dummy import DummyClassifier
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import f1_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
 
 def read_data(file_name: str) -> list:
 	"""Reads in a TSV file and converts to a list of utterances.
@@ -45,12 +48,13 @@ def evaluate(model, x_data: list, y_data: list) -> (float, float, float, float):
 	y_true = y_data
 
 	accuracy = accuracy_score(y_true, y_pred)
-	precision = precision_score(y_true, y_pred)
-	recall = recall_score(y_true, y_pred)
-	f1_measure = f1_score(y_true, y_pred)
+	precision = precision_score(y_true, y_pred, average='macro')
+	recall = recall_score(y_true, y_pred, average='macro')
+	f1_measure = f1_score(y_true, y_pred, average='macro')
 	return accuracy, precision, recall, f1_measure
 
-def train_test_split(features: list, targets: list, test_size: float, random_state: int = None) -> (list, list, list, list):
+def train_test_split(features: list, targets: list,
+	test_size: float, random_state: int = None) -> (list, list, list, list):
 	"""Working version of sklearn.model_selection.train_test_split"""
 	if random_state:
 		random.seed(random_state)
@@ -79,11 +83,13 @@ def main():
 		good_start, good_end in data]
 	good_ends = [good_end for file_id, turn_type, speaker, turn_num, utt_num, sentence,
 		good_start, good_end in data]
-	x_train, x_test, y_train, y_test = train_test_split(sentences, good_ends, test_size=0.1, random_state=1311)
+	x_train, x_test, y_train, y_test = train_test_split(
+		sentences, good_ends, test_size=0.1, random_state=1311)
 
 	baseline = DummyClassifier(strategy='most_frequent')
 	baseline.fit(np.reshape(range(len(x_train)), (-1, 1)), y_train)
-	print('Accuracy: {}\nPrecision: {}\nRecall: {}\nF1: {}'.format(*evaluate(baseline, x_test, y_test)))
+	print('Accuracy: {}\nPrecision: {}\nRecall: {}\nF1: {}'.format(
+		*evaluate(baseline, x_test, y_test)))
 
 if __name__ == '__main__':
 	main()
