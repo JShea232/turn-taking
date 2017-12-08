@@ -120,10 +120,8 @@ def main():
     # Read in training/test data
     data = read_data(transcript_file)
 
-    sentences = [sentence for file_id, turn_type, speaker, turn_num, utt_num, sentence,
-        good_start, good_end in data]
-    good_ends = [good_end for file_id, turn_type, speaker, turn_num, utt_num, sentence,
-        good_start, good_end in data]
+    sentences, good_ends = zip(*[(sentence, good_end) for file_id, turn_type, speaker, turn_num,
+        utt_num, sentence, good_start, good_end in data])
     sentences, test_sentences, endings, test_endings = train_test_split(
         sentences, good_ends, test_size=0.1, random_state=1311)
 
