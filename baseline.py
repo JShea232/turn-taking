@@ -8,20 +8,14 @@ import pickle
 import numpy as np
 from sklearn.dummy import DummyClassifier
 
+
 class BaselineClassifier(object):
 	@staticmethod
 	def train_model(sentence_list: list, endings_list: list):
 		"""
-		This function works to train a model utilizing multiple classifiers.
-		For each classifier, the program will re-train to produce a new model,
-		and see if this new model will result in a higher accuracy rating for
-		a randomly generated test-set. As of right now, the models that are
-		being utilized by this function include...
-
-			1). LinearSVC model
-
-		Once a model has been chosen, it will be saved to a pickle file that
-		can then later be re-loaded to test on a sample data set.
+		This function works to train a model utilizing a Dummy Classifier
+		By using this Dummy Classifier, it is possible to calculate a
+		baseline by simply casting everything as the majority class.
 
 		:param sentence_list: list of sample utterances
 		:param endings_list: list of whether or not an utterance was interrupted

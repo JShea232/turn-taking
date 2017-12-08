@@ -17,6 +17,7 @@ from sklearn.model_selection import train_test_split
 from baseline import BaselineClassifier
 from tfidf import TfidfClassifier
 
+
 def read_data(file_name: str) -> list:
 	"""Reads in a TSV file and converts to a list of utterances.
 
@@ -43,12 +44,14 @@ def read_data(file_name: str) -> list:
 				data.append([file_id, turn_type, speaker, turn_num, utt_num, sentence, good_start, good_end])
 	return data
 
+
 def evaluate(y_true: list, y_pred: np.ndarray) -> None:
 	"""Calculates metrics for a model."""
 	print('Accuracy: {:.4f}'.format(accuracy_score(y_true, y_pred)))
 	print('Precision: {:.4f}'.format(precision_score(y_true, y_pred, average='macro')))
 	print('Recall: {:.4f}'.format(recall_score(y_true, y_pred, average='macro')))
 	print('F1: {:.4f}'.format(f1_score(y_true, y_pred, average='macro')))
+
 
 def main():
 	"""Reads in transcript data and tests the turn-taking detector"""

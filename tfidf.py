@@ -7,10 +7,13 @@ import pickle
 
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
-from sklearn.svm import LinearSVC
+from sklearn.svm import LinearSVC, SVC
+from sklearn.tree import DecisionTreeClassifier
+import time
+
+CROSS_VALIDATION = 5
 
 class TfidfClassifier(object):
 	@staticmethod
@@ -23,6 +26,7 @@ class TfidfClassifier(object):
 		being utilized by this function include...
 
 			1). LinearSVC model
+			2). Decision Tree model
 
 		Once a model has been chosen, it will be saved to a pickle file that
 		can then later be re-loaded to test on a sample data set.
@@ -34,10 +38,11 @@ class TfidfClassifier(object):
 
 		# Best models will initialize as None
 		best_vectorizer = None
-		best_accuracy = 0.0
+		best_f1 = 0.0
 		best_model = None
 
-		for i in range(5):
+		for i in range(CROSS_VALIDATION):
+			print("------------------------------------------------------------")
 			vectorizer = TfidfVectorizer()
 			transformed_sentences = vectorizer.fit_transform(sentence_list)
 
@@ -48,25 +53,29 @@ class TfidfClassifier(object):
 			# Dictionary of classifiers that will 'compete' for the best
 			# accuracy rating
 			classifiers = {
-				'LinearSVC-5': LinearSVC(C=5.0)
+				'LinearSVC': LinearSVC(C=5.0),
+				'DecisionTree': DecisionTreeClassifier(),
 			}
-			current_accuracy = 0.0
+			current_f1 = 0.0
 			current_model = None
 
 			# Iterate through each possible classifier
 			for name, clf in classifiers.items():
+				start = time.time()
 				clf.fit(training, train_label)
 				predictions = clf.predict(testing)
-				if current_accuracy < accuracy_score(test_label, predictions):
-					current_accuracy = accuracy_score(test_label, predictions)
+				if current_f1 < f1_score(test_label, predictions):
+					current_f1 = f1_score(test_label, predictions)
 					current_model = clf
+				print("Time elapsed for " + name + " with an F1 of " +
+				str(f1_score(test_label, predictions)) + ": " + str(time.time() - start) + " seconds")
 
 			# Update if a new best model has been selected
-			if best_accuracy < current_accuracy:
-				best_accuracy = current_accuracy
+			if best_f1 < current_f1:
+				best_f1 = current_f1
 				best_model = current_model
 				best_vectorizer = vectorizer
-				print("Improved training accuracy of " + str(best_accuracy) + "%")
+				print("Improved training F1 score of " + str(best_f1) + "%")
 
 		print("Model chosen for fitted data...")
 		print(best_model)

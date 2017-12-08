@@ -45,7 +45,11 @@ def calculate_best_collocation(decision_list, quantity):
     print("-------------------------------------------")
     for index in range(quantity):
         if index < len(decision_list):
-            print(decision_list[index])
+            feature = decision_list[index]
+            print(feature)
+            bad_endings = collocation_dict['BAD_END'][feature[0]][feature[1]]
+            good_endings = collocation_dict['GOOD_END'][feature[0]][feature[1]]
+            print("\tBAD ENDINGS: " + str(bad_endings) + "   |   GOOD ENDINGS: " + str(good_endings))
     print("-------------------------------------------")
 
     return decision_list
@@ -171,16 +175,13 @@ def main():
     if not os.path.isfile(transcript_file):
         raise RuntimeError('The given file does not exist!')
     data = read_data(transcript_file)
-    counter = 0
+
     for sen in data:
-        counter += 1
         train_classifier(sen)
 
-    print("NUM ITEMS: " + str(counter))
     print_common_features('GOOD_END', 'last_word', 10)
     print_common_features('BAD_END', 'last_word', 10)
-    print(collocation_dict['GOOD_END']['total'])
-    print(collocation_dict['BAD_END']['total'])
+
     decision_list = create_decision_lists(collocation_dict['GOOD_END'],
                                           collocation_dict['BAD_END'])
     calculate_best_collocation(decision_list, 10)
