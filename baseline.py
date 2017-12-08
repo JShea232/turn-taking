@@ -15,8 +15,9 @@ from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.model_selection import train_test_split
 from sklearn.svm import LinearSVC
+from sklearn.dummy import DummyClassifier
 
-class TfidfClassifier(object):
+class BaselineClassifier(object):
 	@staticmethod
 	def train_model(sentence_list: list, endings_list: list):
 		"""
@@ -36,50 +37,12 @@ class TfidfClassifier(object):
 		:return: None
 		"""
 
-		# Best models will initialize as None
-		best_vectorizer = None
-		best_accuracy = 0.0
-		best_model = None
-
-		for i in range(5):
-			vectorizer = TfidfVectorizer()
-			transformed_sentences = vectorizer.fit_transform(sentence_list)
-
-			# Randomly generate a training and test set to get an accuracy
-			training, testing, train_label, test_label = \
-				train_test_split(transformed_sentences, endings_list)
-
-			# Dictionary of classifiers that will 'compete' for the best
-			# accuracy rating
-			classifiers = {
-				'LinearSVC-5': LinearSVC(C=5.0)
-			}
-			current_accuracy = 0.0
-			current_model = None
-
-			# Iterate through each possible classifier
-			for name, clf in classifiers.items():
-				clf.fit(training, train_label)
-				predictions = clf.predict(testing)
-				if current_accuracy < accuracy_score(test_label, predictions):
-					current_accuracy = accuracy_score(test_label, predictions)
-					current_model = clf
-
-			# Update if a new best model has been selected
-			if best_accuracy < current_accuracy:
-				best_accuracy = current_accuracy
-				best_model = current_model
-				best_vectorizer = vectorizer
-				print("Improved training accuracy of " + str(best_accuracy) + "%")
-
-		print("Model chosen for fitted data...")
-		print(best_model)
+		baseline = DummyClassifier(strategy='most_frequent')
+		baseline.fit(np.reshape(range(len(sentence_list)), (-1, 1)), endings_list)
 
 		# Store model and vectorizer into a pickle file
-		with open('turn_taking_model.pkl', 'wb') as file:
-			pickle.dump(best_model, file)
-		with open('turn_taking_vector.pkl', 'wb') as file:
-			pickle.dump(best_vectorizer, file)
+		with open('baseline.pkl', 'wb') as file:
+			pickle.dump(baseline, file)
 
 	@staticmethod
 	def test_model(sentences: list, endings: list) -> np.ndarray:
@@ -94,12 +57,11 @@ class TfidfClassifier(object):
 		:param endings: list of whether or not an utterance was interrupted
 		:return: None
 		"""
-		with open('turn_taking_model.pkl', 'rb') as file:
-			clf = pickle.load(file)
-		with open('turn_taking_vector.pkl', 'rb') as file:
-			vectorizer = pickle.load(file)
-		features = vectorizer.transform(sentences)
-		predictions = clf.predict(features)
+		with open('baseline.pkl', 'rb') as file:
+			baseline = pickle.load(file)
+
+		x_data = np.reshape(range(len(sentences)), (-1, 1))
+		predictions = baseline.predict(x_data)
 		print(type(predictions), type(predictions[0]))
 		print('Accuracy: %0.4f' % accuracy_score(endings, predictions))
 		print('Precision: %0.4f' % precision_score(endings, predictions, average='macro'))
@@ -128,9 +90,9 @@ def main():
 		sentences, good_ends, test_size=0.1, random_state=1311)
 
 	if do_train:
-		TfidfClassifier().train_model(sentences, endings)
+		BaselineClassifier().train_model(sentences, endings)
 
-	TfidfClassifier().test_model(test_sentences, test_endings)
+	BaselineClassifier().test_model(test_sentences, test_endings)
 
 if __name__ == '__main__':
 	from main import read_data
