@@ -6,15 +6,16 @@ Written for Python 3.6.3.
 import argparse
 import csv
 import os
-import random
 
 import numpy as np
-from sklearn.dummy import DummyClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.model_selection import train_test_split
+
+from baseline import BaselineClassifier
+from tfidf import TfidfClassifier
 
 def read_data(file_name: str) -> list:
 	"""Reads in a TSV file and converts to a list of utterances.
@@ -42,40 +43,45 @@ def read_data(file_name: str) -> list:
 				data.append([file_id, turn_type, speaker, turn_num, utt_num, sentence, good_start, good_end])
 	return data
 
-def evaluate(model, x_data: list, y_data: list) -> (float, float, float, float):
+def evaluate(y_true: list, y_pred: np.ndarray) -> None:
 	"""Calculates metrics for a model."""
-	x_data = np.reshape(range(len(x_data)), (-1, 1))
-	y_pred = model.predict(x_data)
-	y_true = y_data
-
-	accuracy = accuracy_score(y_true, y_pred)
-	precision = precision_score(y_true, y_pred, average='macro')
-	recall = recall_score(y_true, y_pred, average='macro')
-	f1_measure = f1_score(y_true, y_pred, average='macro')
-	return accuracy, precision, recall, f1_measure
+	print('Accuracy: {:.4f}'.format(accuracy_score(y_true, y_pred)))
+	print('Precision: {:.4f}'.format(precision_score(y_true, y_pred, average='macro')))
+	print('Recall: {:.4f}'.format(recall_score(y_true, y_pred, average='macro')))
+	print('F1: {:.4f}'.format(f1_score(y_true, y_pred, average='macro')))
 
 def main():
 	"""Reads in transcript data and tests the turn-taking detector"""
-	parser = argparse.ArgumentParser(description=
-			'Runs turn-taking detector.')
-	parser.add_argument('transcript_file', help='File containing the collated utterance information.')
+	parser = argparse.ArgumentParser(
+		description='Trains and gives information for a turn-taking model.')
+	parser.add_argument('transcript_file', help='File containing the collated '
+												'utterance information.')
+	parser.add_argument('-t', action='store_true', help='Enable training.', dest='train')
+	parser.add_argument('-model', default='tfidf', choices=['baseline', 'tfidf'], help='Model to use.')
 	args = vars(parser.parse_args())
 	transcript_file = args['transcript_file']
+	do_train = args['train']
+	model_name = args['model']
 	if not os.path.isfile(transcript_file):
 		raise RuntimeError('The given file does not exist!')
 
 	data = read_data(transcript_file)
-	sentences = [sentence for file_id, turn_type, speaker, turn_num, utt_num, sentence,
-		good_start, good_end in data]
-	good_ends = [good_end for file_id, turn_type, speaker, turn_num, utt_num, sentence,
-		good_start, good_end in data]
-	x_train, x_test, y_train, y_test = train_test_split(
-		sentences, good_ends, test_size=0.1, random_state=1311)
+	sentences, endings = zip(*[(sentence, good_end) for file_id, turn_type, speaker, turn_num,
+		utt_num, sentence, good_start, good_end in data])
+	train_sentences, test_sentences, train_endings, test_endings = train_test_split(
+		sentences, endings, test_size=0.1, random_state=1311)
 
-	baseline = DummyClassifier(strategy='most_frequent')
-	baseline.fit(np.reshape(range(len(x_train)), (-1, 1)), y_train)
-	print('Accuracy: {}\nPrecision: {}\nRecall: {}\nF1: {}'.format(
-		*evaluate(baseline, x_test, y_test)))
+	if model_name == 'baseline':
+		model = BaselineClassifier()
+	elif model_name == 'tfidf':
+		model = TfidfClassifier()
+
+	if do_train:
+		model.train_model(train_sentences, train_endings)
+
+	predictions = model.test_model(test_sentences)
+
+	evaluate(test_endings, predictions)
 
 if __name__ == '__main__':
 	main()
