@@ -10,6 +10,7 @@ import os
 import random
 import re
 import string
+import pickle
 
 import nltk
 from nltk import pos_tag
@@ -76,11 +77,16 @@ def main():
 	"""Tests the syntax analyzing portions of the turn-taking detector"""
 	parser = argparse.ArgumentParser(description='Runs turn-taking detector.')
 	parser.add_argument('transcript_file', help='File containing the collated utterance information.')
+	parser.add_argument('-t', action='store_true', help='Enable training.', dest='train')
+	parser.add_argument('-sentence', help='Enable training.')
 	args = vars(parser.parse_args())
 	transcript_file = args['transcript_file']
+	do_train = args['train']
+	sentence = args['sentence']
 	if not os.path.isfile(transcript_file):
 		raise RuntimeError('The given file does not exist!')
 
+	'''
 	random.seed(1311)
 
 	data = read_data(transcript_file)
@@ -88,9 +94,15 @@ def main():
 		good_start, good_end in data]
 	random.shuffle(sentences)
 	print(sentences[:10])
+	'''
 
-	grammar = create_grammar()
-	sentence = 'that\'s where the real sticking point comes in'
+	if do_train:
+		grammar = create_grammar()
+		with open('grammar.pkl', 'wb') as file:
+			pickle.dump(grammar, file)
+	else:
+		with open('grammar.pkl', 'rb') as file:
+			grammar = pickle.load(file)
 	# "I went to the house"
 	# "The house I did go"
 	# "that's where the real sticking point comes in"
