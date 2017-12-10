@@ -5,10 +5,13 @@ Written for Python 3.6.3.
 
 import argparse
 import csv
+import itertools
 import os
 
+import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
@@ -16,7 +19,6 @@ from sklearn.model_selection import train_test_split
 
 from baseline import BaselineClassifier
 from tfidf import TfidfClassifier
-
 
 def read_data(file_name: str) -> list:
 	"""Reads in a TSV file and converts to a list of utterances.
@@ -44,6 +46,38 @@ def read_data(file_name: str) -> list:
 				data.append([file_id, turn_type, speaker, turn_num, utt_num, sentence, good_start, good_end])
 	return data
 
+def plot_confusion_matrix(true, preds, classes, normalize=False, title='Confusion matrix', color=plt.get_cmap('Blues')):
+	"""This function prints and plots the confusion matrix. Normalization can be applied by setting `normalize=True`.
+
+	Source: http://scikit-learn.org/dev/_downloads/plot_confusion_matrix.py
+	"""
+	results = confusion_matrix(true, preds)
+
+	if normalize:
+		results = results.astype('float') / results.sum(axis=1)[:, np.newaxis]
+		print('Normalized confusion matrix')
+	else:
+		print('Confusion matrix, without normalization')
+
+	print(results)
+
+	plt.imshow(results, interpolation='nearest', cmap=color)
+	plt.title(title)
+	plt.colorbar()
+	tick_marks = np.arange(len(classes))
+	plt.xticks(tick_marks, classes, rotation=45)
+	plt.yticks(tick_marks, classes)
+
+	fmt = '.2f' if normalize else 'd'
+	thresh = results.max() / 2
+	for i, j in itertools.product(range(results.shape[0]), range(results.shape[1])):
+		plt.text(j, i, format(results[i, j], fmt), horizontalalignment='center', color='white' if results[i, j] > thresh else 'black')
+
+	plt.tight_layout()
+	plt.ylabel('True label')
+	plt.xlabel('Predicted label')
+	#plt.savefig('confusion_matrix.png', bbox_inches='tight')
+	plt.show()
 
 def evaluate(y_true: list, y_pred: np.ndarray) -> None:
 	"""Calculates metrics for a model."""
@@ -51,7 +85,7 @@ def evaluate(y_true: list, y_pred: np.ndarray) -> None:
 	print('Precision: {:.4f}'.format(precision_score(y_true, y_pred, average='macro')))
 	print('Recall: {:.4f}'.format(recall_score(y_true, y_pred, average='macro')))
 	print('F1: {:.4f}'.format(f1_score(y_true, y_pred, average='macro')))
-
+	plot_confusion_matrix(y_true, y_pred, ['interrupted', 'uninterrupted'], normalize=True)
 
 def main():
 	"""Reads in transcript data and tests the turn-taking detector"""
