@@ -8,6 +8,7 @@ import csv
 import itertools
 import os
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import accuracy_score
@@ -46,8 +47,11 @@ def read_data(file_name: str) -> list:
 				data.append([file_id, turn_type, speaker, turn_num, utt_num, sentence, good_start, good_end])
 	return data
 
-def plot_confusion_matrix(true, preds, classes, normalize=False, title='Confusion matrix', color=plt.get_cmap('Blues')):
-	"""This function prints and plots the confusion matrix. Normalization can be applied by setting `normalize=True`.
+def plot_confusion_matrix(true: list, preds: np.ndarray, classes: list, normalize: bool = False,
+	title: str = 'Confusion matrix',
+	color: mpl.colors.LinearSegmentedColormap = plt.get_cmap('Blues')):
+	"""This function prints and plots the confusion matrix.
+	Normalization can be applied by setting `normalize=True`.
 
 	Source: http://scikit-learn.org/dev/_downloads/plot_confusion_matrix.py
 	"""
@@ -71,7 +75,8 @@ def plot_confusion_matrix(true, preds, classes, normalize=False, title='Confusio
 	fmt = '.2f' if normalize else 'd'
 	thresh = results.max() / 2
 	for i, j in itertools.product(range(results.shape[0]), range(results.shape[1])):
-		plt.text(j, i, format(results[i, j], fmt), horizontalalignment='center', color='white' if results[i, j] > thresh else 'black')
+		plt.text(j, i, format(results[i, j], fmt), horizontalalignment='center',
+			color='white' if results[i, j] > thresh else 'black')
 
 	plt.tight_layout()
 	plt.ylabel('True label')
